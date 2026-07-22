@@ -10,9 +10,6 @@ using Avalonia.Media;
 using Avalonia.Layout;
 using Avalonia.Input;
 using Avalonia.Platform.Storage;
-#if WINDOWS
-using System.Media;
-#endif
 
 namespace EternSynth
 {
@@ -923,47 +920,44 @@ namespace EternSynth
     }
 
     // Cross-Platform Playback Wrapper
+    // Uses shell commands on all platforms - no extra NuGet packages required.
+    // Windows: PowerShell Media.SoundPlayer | macOS: afplay | Linux: aplay
     public static class CrossPlatformAudioPlayer
     {
-#if WINDOWS
-        private static SoundPlayer activePlayer = null;
-        private static MemoryStream activeStream = null;
-#endif
-
         public static void PlayWav(byte[] wavBytes)
         {
             if (wavBytes == null) return;
 
-#if WINDOWS
-            try
-            {
-                PlayWindows(wavBytes);
-                return;
-            }
-            catch { }
-#endif
-
-            // macOS or Linux: write to temp file and shell out to a system player
             string tempFile = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "eternsynth_temp.wav");
             try
             {
                 File.WriteAllBytes(tempFile, wavBytes);
 
                 var psi = new System.Diagnostics.ProcessStartInfo();
-                if (File.Exists("/usr/bin/afplay") || File.Exists("/usr/local/bin/afplay"))
+                psi.UseShellExecute = false;
+                psi.CreateNoWindow = true;
+
+                if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(
+                        System.Runtime.InteropServices.OSPlatform.Windows))
                 {
-                    // macOS
+                    // Windows: use PowerShell built-in Media.SoundPlayer (no extra assembly needed)
+                    psi.FileName = "powershell";
+                    psi.Arguments = $"-NoProfile -NonInteractive -Command \"(New-Object Media.SoundPlayer '{tempFile}').PlaySync()\"";
+                }
+                else if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(
+                             System.Runtime.InteropServices.OSPlatform.OSX))
+                {
+                    // macOS: afplay is built-in
                     psi.FileName = "afplay";
                     psi.Arguments = tempFile;
                 }
                 else
                 {
-                    // Linux
+                    // Linux: aplay (ALSA utils)
                     psi.FileName = "aplay";
                     psi.Arguments = tempFile;
                 }
-                psi.UseShellExecute = false;
-                psi.CreateNoWindow = true;
+
                 System.Diagnostics.Process.Start(psi);
             }
             catch (Exception ex)
@@ -971,26 +965,5 @@ namespace EternSynth
                 System.Diagnostics.Debug.WriteLine("Audio playback failed: " + ex.Message);
             }
         }
-
-#if WINDOWS
-        private static void PlayWindows(byte[] wavBytes)
-        {
-            if (activePlayer != null)
-            {
-                activePlayer.Stop();
-                activePlayer.Dispose();
-                activePlayer = null;
-            }
-            if (activeStream != null)
-            {
-                activeStream.Dispose();
-                activeStream = null;
-            }
-
-            activeStream = new MemoryStream(wavBytes);
-            activePlayer = new SoundPlayer(activeStream);
-            activePlayer.Play();
-        }
-#endif
     }
 }
