@@ -1,0 +1,9 @@
+# Executables & Builds
+*.exe
+*.pdb
+*.lnk
+
+# Logs and temporary files
+crash_log.txt
+style_errors.txt
+*.log
