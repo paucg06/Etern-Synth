@@ -1,0 +1,52 @@
+name: Cross-Platform Build & Release
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            target: win-x64
+            artifact_name: EternSynth-Windows-x64.exe
+            output_dir: bin/Release/net8.0/win-x64/publish/EternSynth.exe
+          - os: ubuntu-latest
+            target: linux-x64
+            artifact_name: EternSynth-Linux-x64
+            output_dir: bin/Release/net8.0/linux-x64/publish/EternSynth
+          - os: macos-latest
+            target: osx-x64
+            artifact_name: EternSynth-macOS-Intel
+            output_dir: bin/Release/net8.0/osx-x64/publish/EternSynth
+          - os: macos-latest
+            target: osx-arm64
+            artifact_name: EternSynth-macOS-AppleSilicon
+            output_dir: bin/Release/net8.0/osx-arm64/publish/EternSynth
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore EternSynth.csproj
+
+    - name: Publish Standalone Binary
+      run: dotnet publish EternSynth.csproj -c Release -r ${{ matrix.target }} --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: ${{ matrix.output_dir }}

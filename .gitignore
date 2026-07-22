@@ -1,7 +1,11 @@
-# Executables & Builds
+# Executables & Native Builds (compile.ps1 output)
 *.exe
 *.pdb
 *.lnk
+
+# .NET / Avalonia Build Artifacts
+bin/
+obj/
 
 # Logs and temporary files
 crash_log.txt
