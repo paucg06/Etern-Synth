@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Text;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Shapes;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Layout;
@@ -50,24 +49,24 @@ namespace EternSynth
             db = Storage.Load();
 
             // Locate elements
-            presetsPanel = this.FindChild<StackPanel>("PresetsPanel");
-            slidersPanel = this.FindChild<StackPanel>("SlidersPanel");
-            lstHistory = this.FindChild<ListBox>("LstHistory");
-            waveCanvas = this.FindChild<Canvas>("WaveCanvas");
-            volumeSlider = this.FindChild<Slider>("VolumeSlider");
-            chkPlayOnChange = this.FindChild<CheckBox>("ChkPlayOnChange");
-            txtSoundInfo = this.FindChild<TextBlock>("TxtSoundInfo");
-            txtActiveSoundName = this.FindChild<TextBlock>("TxtActiveSoundName");
-            txtActiveSoundDesc = this.FindChild<TextBlock>("TxtActiveSoundDesc");
-            sidebarBorder = this.FindChild<Border>("SidebarBorder");
-            btnCollapse = this.FindChild<Button>("BtnCollapse");
-            btnExpand = this.FindChild<Button>("BtnExpand");
-            contentGrid = this.FindChild<Grid>("ContentGrid");
+            presetsPanel = this.FindControl<StackPanel>("PresetsPanel");
+            slidersPanel = this.FindControl<StackPanel>("SlidersPanel");
+            lstHistory = this.FindControl<ListBox>("LstHistory");
+            waveCanvas = this.FindControl<Canvas>("WaveCanvas");
+            volumeSlider = this.FindControl<Slider>("VolumeSlider");
+            chkPlayOnChange = this.FindControl<CheckBox>("ChkPlayOnChange");
+            txtSoundInfo = this.FindControl<TextBlock>("TxtSoundInfo");
+            txtActiveSoundName = this.FindControl<TextBlock>("TxtActiveSoundName");
+            txtActiveSoundDesc = this.FindControl<TextBlock>("TxtActiveSoundDesc");
+            sidebarBorder = this.FindControl<Border>("SidebarBorder");
+            btnCollapse = this.FindControl<Button>("BtnCollapse");
+            btnExpand = this.FindControl<Button>("BtnExpand");
+            contentGrid = this.FindControl<Grid>("ContentGrid");
 
             // Setup Zoom / Escala Slider logic
-            var zoomSlider = this.FindChild<Slider>("ZoomSlider");
-            var txtZoomVal = this.FindChild<TextBlock>("TxtZoomVal");
-            var workspaceContentGrid = this.FindChild<Grid>("WorkspaceContentGrid");
+            var zoomSlider = this.FindControl<Slider>("ZoomSlider");
+            var txtZoomVal = this.FindControl<TextBlock>("TxtZoomVal");
+            var workspaceContentGrid = this.FindControl<Grid>("WorkspaceContentGrid");
             if (zoomSlider != null && txtZoomVal != null && workspaceContentGrid != null)
             {
                 var scaleTransform = new ScaleTransform(1, 1);
@@ -87,7 +86,7 @@ namespace EternSynth
             }
 
             // Resolve Wave shape buttons from grid
-            var waveSelectorGrid = this.FindChild<Grid>("WaveSelectorGrid");
+            var waveSelectorGrid = this.FindControl<Grid>("WaveSelectorGrid");
             if (waveSelectorGrid != null)
             {
                 foreach (var child in waveSelectorGrid.Children)
@@ -507,7 +506,7 @@ namespace EternSynth
             if (height <= 0) height = 100;
 
             // Background baseline grid line
-            var baseline = new Line
+            var baseline = new Avalonia.Controls.Shapes.Line
             {
                 StartPoint = new Point(0, height / 2.0),
                 EndPoint = new Point(width, height / 2.0),
@@ -525,7 +524,7 @@ namespace EternSynth
                 points.Add(new Point(x, y));
             }
 
-            var polyline = new Polyline
+            var polyline = new Avalonia.Controls.Shapes.Polyline
             {
                 Points = points,
                 Stroke = SolidColorBrush.Parse("#58a6ff"),
@@ -763,7 +762,7 @@ namespace EternSynth
                     {
                         var newSound = new SavedSound
                         {
-                            Name = Path.GetFileNameWithoutExtension(files[0].Name),
+                            Name = System.IO.Path.GetFileNameWithoutExtension(files[0].Name),
                             ParamsString = content.Trim()
                         };
                         db.Sounds.Add(newSound);
@@ -945,7 +944,7 @@ namespace EternSynth
 #endif
 
             // macOS or Linux: write to temp file and shell out to a system player
-            string tempFile = Path.Combine(Path.GetTempPath(), "eternsynth_temp.wav");
+            string tempFile = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "eternsynth_temp.wav");
             try
             {
                 File.WriteAllBytes(tempFile, wavBytes);
