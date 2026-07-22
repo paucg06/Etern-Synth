@@ -7,6 +7,7 @@ $compiler = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
 $outputExe = Join-Path $scriptDir "EternSynth.exe"
 
 $sourceFiles = @(
+    (Join-Path $scriptDir "Models.cs"),
     (Join-Path $scriptDir "SfxrSynth.cs"),
     (Join-Path $scriptDir "WpfVectorIcons.cs"),
     (Join-Path $scriptDir "WpfMainWindow.cs")

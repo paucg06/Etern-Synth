@@ -10,6 +10,12 @@
     <RootNamespace>EternSynth</RootNamespace>
   </PropertyGroup>
 
+  <!-- Define WINDOWS constant when targeting win-x64 so SoundPlayer can be conditionally compiled -->
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+    <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+  </PropertyGroup>
+
+  <!-- Exclude native Windows-only WPF files from the Avalonia cross-platform build -->
   <ItemGroup>
     <Compile Remove="WpfMainWindow.cs" />
     <Compile Remove="WpfVectorIcons.cs" />

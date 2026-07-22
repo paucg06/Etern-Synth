@@ -11,6 +11,9 @@ using Avalonia.Media;
 using Avalonia.Layout;
 using Avalonia.Input;
 using Avalonia.Platform.Storage;
+#if WINDOWS
+using System.Media;
+#endif
 
 namespace EternSynth
 {
@@ -923,40 +926,46 @@ namespace EternSynth
     // Cross-Platform Playback Wrapper
     public static class CrossPlatformAudioPlayer
     {
-        private static System.Media.SoundPlayer activePlayer = null;
-        private static System.IO.MemoryStream activeStream = null;
+#if WINDOWS
+        private static SoundPlayer activePlayer = null;
+        private static MemoryStream activeStream = null;
+#endif
 
         public static void PlayWav(byte[] wavBytes)
         {
             if (wavBytes == null) return;
 
-            // 1. Windows platform
-            if (System.IO.Path.DirectorySeparatorChar == '\\')
-            {
-                try
-                {
-                    PlayWindows(wavBytes);
-                }
-                catch { }
-                return;
-            }
-
-            // 2. macOS or Linux platform (run shell playback tool)
-            string tempFile = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "eternsynth_temp.wav");
+#if WINDOWS
             try
             {
-                System.IO.File.WriteAllBytes(tempFile, wavBytes);
-                
-                if (System.IO.File.Exists("/usr/bin/afplay") || System.IO.File.Exists("/usr/local/bin/afplay"))
+                PlayWindows(wavBytes);
+                return;
+            }
+            catch { }
+#endif
+
+            // macOS or Linux: write to temp file and shell out to a system player
+            string tempFile = Path.Combine(Path.GetTempPath(), "eternsynth_temp.wav");
+            try
+            {
+                File.WriteAllBytes(tempFile, wavBytes);
+
+                var psi = new System.Diagnostics.ProcessStartInfo();
+                if (File.Exists("/usr/bin/afplay") || File.Exists("/usr/local/bin/afplay"))
                 {
-                    // macOS afplay
-                    System.Diagnostics.Process.Start("afplay", tempFile);
+                    // macOS
+                    psi.FileName = "afplay";
+                    psi.Arguments = tempFile;
                 }
                 else
                 {
-                    // Linux aplay
-                    System.Diagnostics.Process.Start("aplay", tempFile);
+                    // Linux
+                    psi.FileName = "aplay";
+                    psi.Arguments = tempFile;
                 }
+                psi.UseShellExecute = false;
+                psi.CreateNoWindow = true;
+                System.Diagnostics.Process.Start(psi);
             }
             catch (Exception ex)
             {
@@ -964,6 +973,7 @@ namespace EternSynth
             }
         }
 
+#if WINDOWS
         private static void PlayWindows(byte[] wavBytes)
         {
             if (activePlayer != null)
@@ -978,9 +988,10 @@ namespace EternSynth
                 activeStream = null;
             }
 
-            activeStream = new System.IO.MemoryStream(wavBytes);
-            activePlayer = new System.Media.SoundPlayer(activeStream);
+            activeStream = new MemoryStream(wavBytes);
+            activePlayer = new SoundPlayer(activeStream);
             activePlayer.Play();
         }
+#endif
     }
 }
