@@ -70,7 +70,7 @@ namespace EternSynth
             if (zoomSlider != null && txtZoomVal != null && workspaceContentGrid != null)
             {
                 var scaleTransform = new ScaleTransform(1, 1);
-                workspaceContentGrid.LayoutTransform = scaleTransform;
+                workspaceContentGrid.RenderTransform = scaleTransform;
                 zoomSlider.ValueChanged += (s, e) =>
                 {
                     scaleTransform.ScaleX = zoomSlider.Value;
